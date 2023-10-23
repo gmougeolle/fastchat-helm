@@ -1,0 +1,43 @@
+webserver:
+  enabled: true
+  extraParams: []
+  fastchatWebserver:
+    image:
+      repository: gmougeolle/fastchat
+      tag: latest
+  replicas: 1
+  ingress:
+    enabled: true
+    hostname: chatbot.nextmap.io
+api:
+  enabled: true
+  extraParams: []
+  fastchatAPI:
+    image:
+      repository: gmougeolle/fastchat
+      tag: latest
+  replicas: 1
+controller:
+  enabled: true
+  extraParams: []
+  fastchatController:
+    image:
+      repository: gmougeolle/fastchat
+      tag: latest
+  ports:
+  replicas: 1
+kubernetesClusterDomain: cluster.local
+modelWorker:
+  enabled: true
+  extraParams: []
+  gpuBrand: nvidia.com/gpu
+  gpuLimit: 1
+  fastchatModelWorker:
+    modelPath: HuggingFaceH4/zephyr-7b-alpha
+    image:
+      repository: gmougeolle/fastchat
+      tag: latest
+  replicas: 1
+pvc:
+  huggingface:
+    storageRequest: 30Gi

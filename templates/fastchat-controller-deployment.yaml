@@ -1,0 +1,43 @@
+{{- if .Values.controller.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "fastchat-helm.fullname" . }}-controller
+  labels:
+    {{- include "fastchat-helm.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.controller.replicas }}
+  selector:
+    matchLabels:
+      app: fastchat-controller
+      {{- include "fastchat-helm.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app: fastchat-controller
+        {{- include "fastchat-helm.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+      - name: fastchat-controller
+        image: {{ .Values.controller.fastchatController.image.repository }}:{{ .Values.controller.fastchatController.image.tag | default .Chart.AppVersion }}
+        command:
+        - python3.9
+        - -m
+        - fastchat.serve.controller
+        - --host
+        - 0.0.0.0
+        - --port
+        - "21001"
+        {{- if .Values.controller.extraParams }}
+        {{- range .Values.controller.extraParams }}
+        - "{{ . }}"
+        {{- end }}
+        {{- end }}
+        env:
+        - name: KUBERNETES_CLUSTER_DOMAIN
+          value: {{ quote .Values.kubernetesClusterDomain }}
+        ports:
+        - containerPort: 21001
+          protocol: TCP
+      restartPolicy: Always
+{{- end }}

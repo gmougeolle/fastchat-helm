@@ -1,0 +1,56 @@
+{{- if .Values.modelWorker.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "fastchat-helm.fullname" . }}-model-worker
+  labels:
+    {{- include "fastchat-helm.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.modelWorker.replicas }}
+  selector:
+    matchLabels:
+      app: fastchat-model-worker
+      {{- include "fastchat-helm.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app: fastchat-model-worker
+        {{- include "fastchat-helm.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+      - name: fastchat-model-worker
+        image: {{ .Values.modelWorker.fastchatModelWorker.image.repository }}:{{ .Values.modelWorker.fastchatModelWorker.image.tag | default .Chart.AppVersion }}
+        command:
+        - python3.9
+        - -m
+        - fastchat.serve.model_worker
+        - --model-path
+        - {{ .Values.modelWorker.fastchatModelWorker.modelPath }}
+        - --worker-address
+        - http://{{ include "fastchat-helm.fullname" . }}-model-worker:21002
+        - --controller-address
+        - http://{{ include "fastchat-helm.fullname" . }}-controller:21001
+        - --host
+        - 0.0.0.0
+        - --port
+        - "21002"
+        {{- if .Values.modelWorker.extraParams }}
+        {{- range .Values.modelWorker.extraParams }}
+        - "{{ . }}"
+        {{- end }}
+        {{- end }}
+        env:
+        - name: KUBERNETES_CLUSTER_DOMAIN
+          value: {{ quote .Values.kubernetesClusterDomain }}
+        resources:
+          limits:
+            {{ .Values.modelWorker.gpuBrand }}: "{{ .Values.modelWorker.gpuLimit }}"
+        volumeMounts:
+        - mountPath: /root/.cache/huggingface
+          name: huggingface
+      restartPolicy: Always
+      volumes:
+      - name: huggingface
+        persistentVolumeClaim:
+          claimName: {{ include "fastchat-helm.fullname" . }}-huggingface
+{{- end }}

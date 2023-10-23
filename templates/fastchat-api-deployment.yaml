@@ -1,0 +1,36 @@
+{{- if .Values.api.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fastchat-api
+  labels:
+    app: fastchat-api
+spec:
+  replicas: {{ .Values.api.replicas }}
+  selector:
+    matchLabels:
+      app: fastchat-api
+  template:
+    metadata:
+      labels:
+        app: fastchat-api
+    spec:
+      containers:
+      - name: fastchat-api
+        image: {{ .Values.api.fastchatAPI.image.repository }}:{{ .Values.api.fastchatAPI.image.tag }}
+        command: ["python3.9", "-m", "fastchat.serve.openai_api_server"]
+        args:
+        - "--controller-address"
+        - "http://{{ include "fastchat-helm.fullname" . }}-controller:21001"
+        - "--host"
+        - "0.0.0.0"
+        - "--port"
+        - "8001"
+        {{- if .Values.api.extraParams }}
+        {{- range .Values.api.extraParams }}
+        - "{{ . }}"
+        {{- end }}
+        {{- end }}
+        ports:
+        - containerPort: 8001
+{{- end }}

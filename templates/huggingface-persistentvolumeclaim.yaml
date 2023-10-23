@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "fastchat-helm.fullname" . }}-huggingface
+  labels:
+  {{- include "fastchat-helm.labels" . | nindent 4 }}
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.pvc.huggingface.storageRequest | quote }}

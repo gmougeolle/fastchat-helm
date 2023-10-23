@@ -1,0 +1,18 @@
+{{- if .Values.modelWorker.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "fastchat-helm.fullname" . }}-model-worker
+  labels:
+    {{- include "fastchat-helm.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  selector:
+    app: fastchat-model-worker
+    {{- include "fastchat-helm.selectorLabels" . | nindent 4 }}
+  ports:
+  - name: model-worker
+    port: 21002
+    targetPort: 21002
+    protocol: TCP
+{{- end }}
